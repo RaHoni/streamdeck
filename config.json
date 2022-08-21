@@ -1,0 +1,111 @@
+{
+  "obs_password": "kPmvENqIBL0hvt1e",
+  "0": {
+    "type": "Scene",
+    "Name": "Haupt",
+    "Label": "Haupt",
+    "Icon": "scene-inaktiv.png",
+    "Icon-aktiv": "scene-aktiv.png"
+  },
+  "1": {
+    "type": "Scene",
+    "Name": "Ambo",
+    "Label": "Ambo",
+    "Icon": "scene-inaktiv.png",
+    "Icon-aktiv": "scene-aktiv.png"
+  },
+  "2": {
+    "type": "Scene",
+    "Name": "Altar",
+    "Label": "Altar",
+    "Icon": "scene-inaktiv.png",
+    "Icon-aktiv": "scene-aktiv.png"
+  },
+  "3": {
+    "type": "Scene",
+    "Name": "Extra",
+    "Label": "Extra",
+    "Icon": "scene-inaktiv.png",
+    "Icon-aktiv": "scene-aktiv.png"
+  },
+  "4": {
+    "type": "Scene",
+    "Name": "Countdown",
+    "Label": "Countdown",
+    "Icon": "scene-inaktiv.png",
+    "Icon-aktiv": "scene-aktiv.png"
+  },
+  "5": {
+    "type": "SongNumber",
+    "Name": "Gotteslob",
+    "Label": "GL Nr.",
+    "Icon": "gotteslob-dreifaltigkeitsmotiv-700x700.png",
+    "Icon-aktiv": "gotteslob-dreifaltigkeitsmotiv-700x700.png"
+  },
+  "6": {
+    "type": "SongShow",
+    "Label": "Liedanzeige",
+    "Name": "LiedText",
+    "scene": "overlay",
+    "Icon": "gotteslob-dreifaltigkeitsmotiv-700x700.png",
+    "Icon-aktiv": "gotteslob-dreifaltigkeitsmotiv-700x700.png"
+  },
+  "7": {
+    "type": "Render",
+    "Label": "Friedens-\ngebet",
+    "Name": "Friedensgebet",
+    "scene": "overlay",
+    "Icon": "Friedenstaube_inactive.png",
+    "Icon-aktiv": "Friedenstaube.png"
+  },
+  "8": {
+    "type": "Scene",
+    "Name": "Gemeinde",
+    "Label": "Gemeinde",
+    "Icon": "scene-inaktiv.png",
+    "Icon-aktiv": "scene-aktiv.png"
+  },
+  "9": {
+    "type": "Scene",
+    "Name": "Gemeinde+",
+    "Label": "+ Main",
+    "Icon": "scene-inaktiv.png",
+    "Icon-aktiv": "scene-aktiv.png"
+  },
+  "10": {
+    "type": "MuteSource",
+    "Name": "Mischpult",
+    "Label": "Mute",
+    "Icon": "btn_slobs_toggle_mixer_audio_inactive.png",
+    "Icon-aktiv": "btn_slobs_toggle_mixer_audio.png"
+  },
+  "11": {
+    "type": "Render",
+    "Label": "Lied-\nanzeige",
+    "Name": "LiedText",
+    "scene": "overlay",
+    "Icon": "btn_slobs_toggle_source_inactive.png",
+    "Icon-aktiv": "btn_slobs_toggle_source.png"
+  },
+  "12": {
+    "type": "Render",
+    "Label": "Bild",
+    "Name": "LiedBild",
+    "scene": "overlay",
+    "Icon": "btn_slobs_toggle_source_inactive.png",
+    "Icon-aktiv": "btn_slobs_toggle_source.png"
+  },
+  "13": {
+    "type": "StudioMode",
+    "Label": "Studio\nModus",
+    "Icon": "btn_slobs_toggle_mixer_audio_inactive.png",
+    "Icon-aktiv": "btn_slobs_toggle_mixer_audio.png"
+  },
+  "Comment": {
+    "14": {
+      "type": "exit",
+      "Label": "Close",
+      "Icon": "exit.png"
+    }
+  }
+}

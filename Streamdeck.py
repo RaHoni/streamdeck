@@ -362,7 +362,10 @@ if __name__ == "__main__":
                         scene_data[x] = response
                 source_render_data[source_name] = {"current": True, "scenes": scene_data}
             else:
-                source_id = request("GetSceneItemId", {"sceneName": scene_name, "sourceName": source_name})
+                try:
+                    source_id = request("GetSceneItemId", {"sceneName": scene_name, "sourceName": source_name})
+                except:
+                    source_id = None
                 if not (source_id is None):
                     source_id = source_id.get("sceneItemId")
                     SourceInfo = request("GetSceneItemEnabled", {"sceneName": scene_name, "sceneItemId": source_id})

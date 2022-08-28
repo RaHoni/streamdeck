@@ -5,8 +5,10 @@ import atexit
 import json
 import os
 import time
+import traceback
 
 import simpleobsws
+from simpleobsws import Request
 from PIL import Image, ImageDraw, ImageFont
 from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
@@ -74,7 +76,7 @@ async def render_key_image(icon_filetype: str, font_filetype: str, label_text: s
     font = ImageFont.truetype(font_filetype, 15)
     lines = len(label_text.splitlines())
     draw.text((image.width / 2, image.height - 5 - (lines - 1) * 15), text=label_text, font=font, anchor="ms",
-              fill="white", stroke_width=0, spacing=1,align="center")
+              fill="white", stroke_width=0, spacing=1, align="center")
 
     return PILHelper.to_native_format(deck, image)
 
@@ -87,7 +89,7 @@ async def update_key_image(key, state):
 
     # Generate the custom key with the requested image and label.
     image = await render_key_image(key_style["icon"], key_style["font"], key_style["label"], key_style["deactivated"],
-                             key_style["highlight"])
+                                   key_style["highlight"])
 
     # Use a scoped-with on the deck to ensure we're the only thread using it
     # right now.
@@ -138,8 +140,8 @@ async def get_key_style(key, state):
         state = True
 
     if local_key_type == "SongShow":
-        response = await ws.call("GetTextFreetype2Properties", {"source": "LiedText"})
-        label = response["text"][11:]
+        response = await requestAsync("GetInputSettings",{"inputName":"LiedText"})
+        label = response["inputSettings"]["text"][11:]
 
     # print(str(key) + str(state))
     if state:
@@ -161,14 +163,14 @@ async def switch_scene(key):
     global studioMode
     global currentPreviewScene
     local_scene_name = data[key]["Name"]
-    payload = {"scene-name": local_scene_name}
+    payload = {"sceneName": local_scene_name}
     if studioMode:
         if currentPreviewScene == local_scene_name:
-            await ws.emit("SetCurrentScene", payload)
+            await requestAsync("SetCurrentProgramScene", payload)
         else:
-            await ws.emit("SetPreviewScene", payload)
+            await requestAsync("SetCurrentPreviewScene", payload)
     else:
-        await ws.emit("SetCurrentScene", payload)
+        await requestAsync("SetCurrentProgramScene", payload)
 
 
 async def toggle_mute_source(key):
@@ -176,13 +178,14 @@ async def toggle_mute_source(key):
     global ws
     local_source_name = data[key]["Name"]
     payload = {"source": local_source_name}
-    await ws.emit("ToggleMute", payload)
+    await requestAsync("ToggleMute", payload)
 
 
 async def toggle_studio_mode():
     # print("test 1")
-    global ws
-    await ws.emit("ToggleStudioMode")
+    global studioMode
+    print(studioMode)
+    await requestAsync("SetStudioModeEnabled", {"studioModeEnabled":not studioMode})
     # print("Test")
 
 
@@ -197,17 +200,17 @@ async def toggle_render(key):
     if source_data["current"]:
         if currentScene in source_data:
             new_state: bool = not source_data["scenes"][currentScene]
-            await ws.emit("SetSceneItemRender", {"source": local_source_name, "render": new_state})
+            await requestAsync("SetSceneItemRender", {"source": local_source_name, "render": new_state})
     else:
         new_state: bool = not source_data["state"]
-        await ws.emit("SetSceneItemRender",
-                      {"scene-name": source_data["scene"], "source": local_source_name, "render": new_state})
+        await ws.emit(Request("SetSceneItemRender",
+                              {"scene-name": source_data["scene"], "source": local_source_name, "render": new_state}))
 
 
 async def set_song_number():
     number: str = simpledialog.askstring("Gotteslob", "Bitte die Nummer im Gotteslob eintragen")
     Text = "Gotteslob: " + number.strip()
-    await ws.emit("SetTextFreetype2Properties", {"source": "LiedText", "text": Text})
+    await requestAsync("SetTextFreetype2Properties", {"source": "LiedText", "text": Text})
     await update_all_keys()
 
 
@@ -233,7 +236,6 @@ async def key_change_callback(local_deck, key, state):  # noqa
 
 
 atexit.register(exit_handler)
-
 
 
 # Event Listeners
@@ -291,11 +293,31 @@ async def on_on_scene_item_visibility_changed(payload):
     await update_all_keys()
 
 
-def request(request_name, request_data=None):
-    return loop.run_until_complete(ws.call(simpleobsws.Request(request_name, request_data))).responseData
+async def requestAsync(request_name, payload=None):
+    req = Request(request_name, payload)
+    ret = await ws.call(req)
+    if ret.ok():
+        return ret.responseData
+    else:
+        print(ret.requestStatus)
+        traceback.print_stack(limit=3)
 
+
+def request(request_name, request_data=None):
+    ret = loop.run_until_complete(ws.call(simpleobsws.Request(request_name, request_data)))
+    if ret.ok():
+        return ret.responseData
+    else:
+        raise AttributeError(ret.requestStatus)
+
+def handle_exception(loop, context):
+    # context["message"] will always be there; but context["exception"] may not
+    msg = context.get("exception", context["message"])
+    print(msg)
+    loop.close()
 
 if __name__ == "__main__":
+    loop.set_exception_handler(handle_exception)
 
     ROOT = tk.Tk()
     ROOT.withdraw()
@@ -332,34 +354,37 @@ if __name__ == "__main__":
                 scene_data = {"": ""}
                 for x in sceneList:
                     x = x["name"]
-                    source_id = request(("GetSceneItemId",{"sceneName": x, "sourceName": source_name})).get("sceneItemId")
+                    source_id = request(("GetSceneItemId", {"sceneName": x, "sourceName": source_name})).get(
+                        "sceneItemId")
                     response = request("GetSceneItemEnabled", {"sceneName": x, "sceneItemId": source_id}).get(
                         "sceneItemEnabled", "error")
                     if not response == "error":
                         scene_data[x] = response
                 source_render_data[source_name] = {"current": True, "scenes": scene_data}
             else:
-                source_id = request("GetSceneItemId",{"sceneName": scene_name, "sourceName": source_name})
+                source_id = request("GetSceneItemId", {"sceneName": scene_name, "sourceName": source_name})
                 if not (source_id is None):
                     source_id = source_id.get("sceneItemId")
                     SourceInfo = request("GetSceneItemEnabled", {"sceneName": scene_name, "sceneItemId": source_id})
                     source_render_data[source_name] = {
                         "current": False, "scene": scene_name, "state": SourceInfo.get("sceneItemEnabled", False)}
+                else:
+                    source_render_data[source_name] = {"current": False, "scene": scene_name, "state": False}
 
     # get StudioMode
-    studioMode = request("GetStudioModeStatus")["studio-mode"]
+    studioMode = request("GetStudioModeEnabled")["studioModeEnabled"]
     if studioMode:
         currentPreviewScene = request("GetPreviewScene")["name"]
 
     # print(studioMode)
     # get current Scene
-    currentScene = loop.run_until_complete(ws.call("GetCurrentScene"))["name"]
+    currentScene = request("GetCurrentProgramScene")["currentProgramSceneName"]
     loop.run_until_complete(update_all_keys())
     #    ws.register(on_event)  # By not specifying an event to listen to, all events are sent to this callback.
-    ws.register(on_switch_scenes, 'SwitchScenes')
-    ws.register(on_studio_mode_change, "StudioModeSwitched")
-    ws.register(on_preview_scene_change, "PreviewSceneChanged")
-    ws.register(on_source_mute_state_changed, "SourceMuteStateChanged")
-    ws.register(on_on_scene_item_visibility_changed, "SceneItemVisibilityChanged")
+    ws.register_event_callback(on_switch_scenes, 'SwitchScenes')
+    ws.register_event_callback(on_studio_mode_change, "StudioModeSwitched")
+    ws.register_event_callback(on_preview_scene_change, "PreviewSceneChanged")
+    ws.register_event_callback(on_source_mute_state_changed, "SourceMuteStateChanged")
+    ws.register_event_callback(on_on_scene_item_visibility_changed, "SceneItemVisibilityChanged")
 
     loop.run_forever()

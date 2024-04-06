@@ -15,6 +15,9 @@ from StreamDeck.ImageHelpers import PILHelper
 import tkinter as tk
 from tkinter import simpledialog
 
+# Gesangbuch = "Kreuzungen: "
+Gesangbuch = "Gotteslob: "
+# Gesangbuch = ""
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "Assets")
 run = True
 scenes = {}
@@ -55,16 +58,17 @@ async def exit_async():
     os.exit()
 
 
-# Generates a custom tile with run-time generated text and custom image via the
-# PIL module.
-async def render_key_image(icon_filetype: str, font_filetype: str, label_text: str, deactivated: bool,
+# Generates a custom tile with run-time generated text and custom image via the PIL module.
+async def render_key_image(icon_filetype: str, font_filetype: str, label_text: str, deactivated: bool, state: bool,
                            color: str = None):
     # Resize the source image asset to best-fit the dimensions of a single key,
     # leaving a margin at the bottom so that we can draw the key title
     # afterwards.
     icon = Image.open(icon_filetype)
+    if not state:
+        icon.putalpha(80)
     if deactivated:
-        icon.putalpha(70)
+        icon.putalpha(30)
     image = PILHelper.create_scaled_image(deck, icon, margins=[0, 0, 20, 0])
 
     # Load a custom TrueType font and use it to overlay the key index, draw key
@@ -81,15 +85,14 @@ async def render_key_image(icon_filetype: str, font_filetype: str, label_text: s
     return PILHelper.to_native_format(deck, image)
 
 
-# Creates a new key image based on the key index, style and current key state
-# and updates the image on the StreamDeck.
+# Creates a new key image based on the key index, style and current key state and updates the image on the StreamDeck.
 async def update_key_image(key, state):
     # Determine what icon and label to use on the generated key.
     key_style = await get_key_style(key, state)
 
     # Generate the custom key with the requested image and label.
     image = await render_key_image(key_style["icon"], key_style["font"], key_style["label"], key_style["deactivated"],
-                                   key_style["highlight"])
+                                   key_style["state"], key_style["highlight"])
 
     # Use a scoped-with on the deck to ensure we're the only thread using it
     # right now.
@@ -140,8 +143,8 @@ async def get_key_style(key, state):
         state = True
 
     if local_key_type == "SongShow":
-        response = await requestAsync("GetInputSettings",{"inputName":"LiedText"})
-        label = response["inputSettings"]["text"][11:]
+        response = await requestAsync("GetInputSettings", {"inputName": "LiedText"})
+        label = response["inputSettings"]["text"][len(Gesangbuch):]
 
     # print(str(key) + str(state))
     if state:
@@ -153,7 +156,8 @@ async def get_key_style(key, state):
         "font": font,
         "label": label,
         "highlight": highlight,
-        "deactivated": deactivated
+        "deactivated": deactivated,
+        "state": state,
     }
 
 
@@ -185,7 +189,7 @@ async def toggle_studio_mode():
     # print("test 1")
     global studioMode
     print(studioMode)
-    await requestAsync("SetStudioModeEnabled", {"studioModeEnabled":not studioMode})
+    await requestAsync("SetStudioModeEnabled", {"studioModeEnabled": not studioMode})
     # print("Test")
 
 
@@ -197,20 +201,19 @@ async def toggle_render(key):
 
     local_source_name = data[key]["Name"]
     source_data = source_render_data[local_source_name]
-    if source_data["current"]:
-        if currentScene in source_data:
-            new_state: bool = not source_data["scenes"][currentScene]
-            await requestAsync("SetSceneItemRender", {"source": local_source_name, "render": new_state})
-    else:
-        new_state: bool = not source_data["state"]
-        await ws.emit(Request("SetSceneItemRender",
-                              {"scene-name": source_data["scene"], "source": local_source_name, "render": new_state}))
+    new_state: bool = not source_data["state"]
+    id = (
+        await requestAsync("GetSceneItemId", {"sceneName": source_data["scene"], "sourceName": local_source_name})).get(
+        "sceneItemId")
+    t = await requestAsync("SetSceneItemEnabled",
+                           {"sceneName": source_data["scene"], "sceneItemId": id, "sceneItemEnabled": new_state})
+    print(f"Set ${local_source_name} to ${new_state}")
 
 
 async def set_song_number():
     number: str = simpledialog.askstring("Gotteslob", "Bitte die Nummer im Gotteslob eintragen")
-    Text = "Gotteslob: " + number.strip()
-    await requestAsync("SetTextFreetype2Properties", {"source": "LiedText", "text": Text})
+    Text = Gesangbuch + number.strip()
+    await requestAsync("SetInputSettings", {"inputName": "LiedText", "inputSettings": {"text": Text}})
     await update_all_keys()
 
 
@@ -245,8 +248,8 @@ async def on_event(payload):
 
 async def on_source_mute_state_changed(payload):
     global muted_sources
-    local_source_name = payload["sourceName"]
-    muted = payload["muted"]
+    local_source_name = payload["inputName"]
+    muted = payload["inputMuted"]
     if muted:
         muted_sources.add(local_source_name)
     else:
@@ -258,7 +261,7 @@ async def on_switch_scenes(payload):
     global currentScene
     # old_key = scenes[currentScene]["key"]
 
-    currentScene = payload["scene-name"]
+    currentScene = payload["sceneName"]
     await update_all_keys()
 
 
@@ -266,7 +269,7 @@ async def on_studio_mode_change(payload):
     global studioMode
     global currentPreviewScene
     global currentScene
-    studioMode = payload["new-state"]
+    studioMode = payload["studioModeEnabled"]
     currentPreviewScene = currentScene
     # print(studioMode)
     await update_all_keys()
@@ -274,23 +277,31 @@ async def on_studio_mode_change(payload):
 
 async def on_preview_scene_change(payload):
     global currentPreviewScene
-    currentPreviewScene = payload["scene-name"]
+    currentPreviewScene = payload["sceneName"]
     await update_all_keys()
 
 
 async def on_on_scene_item_visibility_changed(payload):
     global source_render_data
 
-    local_source_name: str = payload["item-name"]
-    local_scene_name: str = payload["scene-name"]
-    new_state: bool = payload["item-visible"]
+    local_source_id: str = payload["sceneItemId"]
+    local_scene_name: str = payload["sceneName"]
+    new_state: bool = payload["sceneItemEnabled"]
 
+    response = await requestAsync("GetSceneItemList", {"sceneName": local_scene_name})
+    for input in response.get("sceneItems"):
+        if input["sceneItemId"] == local_source_id:
+            local_source_name = input["sourceName"]
     if local_source_name in source_render_data:
         if source_render_data[local_source_name]["current"]:
             source_render_data[local_source_name]["scenes"][local_scene_name] = new_state
         else:
             source_render_data[local_source_name]["state"] = new_state
+
     await update_all_keys()
+
+
+# Request Helper
 
 
 async def requestAsync(request_name, payload=None):
@@ -310,11 +321,13 @@ def request(request_name, request_data=None):
     else:
         raise AttributeError(ret.requestStatus)
 
+
 def handle_exception(loop, context):
     # context["message"] will always be there; but context["exception"] may not
     msg = context.get("exception", context["message"])
     print(msg)
     loop.close()
+
 
 if __name__ == "__main__":
     loop.set_exception_handler(handle_exception)
@@ -377,17 +390,17 @@ if __name__ == "__main__":
     # get StudioMode
     studioMode = request("GetStudioModeEnabled")["studioModeEnabled"]
     if studioMode:
-        currentPreviewScene = request("GetPreviewScene")["name"]
+        currentPreviewScene = request("GetCurrentPreviewScene")["currentPreviewSceneName"]
 
     # print(studioMode)
     # get current Scene
     currentScene = request("GetCurrentProgramScene")["currentProgramSceneName"]
     loop.run_until_complete(update_all_keys())
     #    ws.register(on_event)  # By not specifying an event to listen to, all events are sent to this callback.
-    ws.register_event_callback(on_switch_scenes, 'SwitchScenes')
-    ws.register_event_callback(on_studio_mode_change, "StudioModeSwitched")
-    ws.register_event_callback(on_preview_scene_change, "PreviewSceneChanged")
-    ws.register_event_callback(on_source_mute_state_changed, "SourceMuteStateChanged")
-    ws.register_event_callback(on_on_scene_item_visibility_changed, "SceneItemVisibilityChanged")
+    ws.register_event_callback(on_switch_scenes, 'CurrentProgramSceneChanged')
+    ws.register_event_callback(on_studio_mode_change, "StudioModeStateChanged")
+    ws.register_event_callback(on_preview_scene_change, "CurrentPreviewSceneChanged")
+    ws.register_event_callback(on_source_mute_state_changed, "InputMuteStateChanged")
+    ws.register_event_callback(on_on_scene_item_visibility_changed, "SceneItemEnableStateChanged")
 
     loop.run_forever()

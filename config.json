@@ -50,14 +50,6 @@
     "Icon": "gotteslob-dreifaltigkeitsmotiv-700x700.png",
     "Icon-aktiv": "gotteslob-dreifaltigkeitsmotiv-700x700.png"
   },
-  "7": {
-    "type": "Render",
-    "Label": "Friedens-\ngebet",
-    "Name": "Friedensgebet",
-    "scene": "overlay",
-    "Icon": "Friedenstaube_inactive.png",
-    "Icon-aktiv": "Friedenstaube.png"
-  },
   "8": {
     "type": "Scene",
     "Name": "Gemeinde",
@@ -87,25 +79,40 @@
     "Icon": "btn_slobs_toggle_source_inactive.png",
     "Icon-aktiv": "btn_slobs_toggle_source.png"
   },
-  "12": {
-    "type": "Render",
-    "Label": "Bild",
-    "Name": "LiedBild",
-    "scene": "overlay",
-    "Icon": "btn_slobs_toggle_source_inactive.png",
-    "Icon-aktiv": "btn_slobs_toggle_source.png"
-  },
   "13": {
     "type": "StudioMode",
     "Label": "Studio\nModus",
     "Icon": "btn_slobs_toggle_mixer_audio_inactive.png",
     "Icon-aktiv": "btn_slobs_toggle_mixer_audio.png"
   },
+  "14": {
+    "type": "Scene",
+    "Name": "Unten",
+    "Label": "Unten",
+    "Icon": "scene-inaktiv.png",
+    "Icon-aktiv": "scene-aktiv.png"
+  },
   "Comment": {
     "14": {
       "type": "exit",
       "Label": "Close",
       "Icon": "exit.png"
-    }
+    },
+  "7": {
+    "type": "Render",
+    "Label": "Friedens-\ngebet",
+    "Name": "Friedensgebet",
+    "scene": "overlay",
+    "Icon": "Friedenstaube_inactive.png",
+    "Icon-aktiv": "Friedenstaube.png"
+  }
+  },
+  "12": {
+    "type": "Render",
+    "Label": "Hinweis",
+    "Name": "Hinweis",
+    "scene": "overlay",
+    "Icon": "btn_slobs_toggle_source_inactive.png",
+    "Icon-aktiv": "btn_slobs_toggle_source.png"
   }
 }

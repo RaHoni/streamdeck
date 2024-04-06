@@ -20,6 +20,14 @@
 
         meta.mainProgram = "streamdeck.py";
 
+        nativeBuildInputs = [ pkgs.copyDesktopItems ];
+
+        desktopItems = [(pkgs.makeDesktopItem {
+          name = "streamdeck";
+          desktopName = "Streamdeck";
+          exec = "streamdeck-obs.py";
+        })];
+
         propagatedBuildInputs = [ streamdeck setuptools simpleobsws pillow tkinter ];
 
         src = ./.;

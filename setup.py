@@ -1,9 +1,9 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
-    name='Streamdeck',
-    version='',
-    packages=[''],
+    name='streamdeck-obs',
+    version='1.0',
+    packages=find_packages(),
     url='',
     license='',
     author='raoul',
@@ -14,5 +14,7 @@ setup(
         'simpleobsws',
         'Pillow',
         'streamdeck',
+        'tkinter',
     ],
+    scripts=["streamdeck.py"]
 )

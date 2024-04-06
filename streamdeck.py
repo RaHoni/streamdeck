@@ -335,7 +335,7 @@ if __name__ == "__main__":
     ROOT = tk.Tk()
     ROOT.withdraw()
 
-    with open("config.json") as f:
+    with open("~/Streamdeck/config.json") as f:
         data = json.load(f)
 
     ws = simpleobsws.WebSocketClient(password=data["obs_password"])

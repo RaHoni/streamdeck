@@ -18,7 +18,7 @@ from tkinter import simpledialog
 # Gesangbuch = "Kreuzungen: "
 Gesangbuch = "Gotteslob: "
 # Gesangbuch = ""
-ASSETS_PATH = os.path.join(os.path.dirname(__file__), "Assets")
+ASSETS_PATH = os.path.join("/home/streaming/Streamdeck" , "Assets")
 run = True
 scenes = {}
 currentScene = ""
@@ -102,7 +102,7 @@ async def update_key_image(key, state):
 
 
 async def get_key_style(key, state):
-    font: str = "NotoSans-Regular.ttf"
+    font: str = "/run/current-system/sw/share/X11/fonts/FreeSans.ttf"
     icon: str = "default.png"
     label: str = ""
     # noinspection PyTypeChecker

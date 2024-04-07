@@ -16,5 +16,7 @@ setup(
         'streamdeck',
         'tkinter',
     ],
-    scripts=["streamdeck.py"]
+    scripts=["streamdeck.py"],
+    package_data={'': ['Assets/*']},
+    include_package_data=True,
 )

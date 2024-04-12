@@ -1,0 +1,32 @@
+[build-system]
+requires = [
+    "setuptools >= 61.0",
+    "setuptools-scm>=8",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "streamdeck-obs"
+description = "Control OBS from a Streamdeck"
+readme = "README.md"
+version = "1.0"
+dependencies = [
+    'setuptools',
+    'simpleobsws',
+    'Pillow',
+    'streamdeck',
+    'tkinter',
+]
+requires-python = ">=3.0"
+authors = [
+    {name = "RaHoni", email = "honisuess@gmail.com"},
+]
+
+
+[project.scripts]
+streamdeck-obs = "streamdeck:main"
+
+[tool.setuptools.package-data]
+"streamdeck.assets" = [ "*.png" ]
+
+

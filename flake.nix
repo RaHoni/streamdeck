@@ -17,18 +17,20 @@
         streamdeck-obs = buildPythonApplication {
         pname = "streamdeck-obs";
         version = "1.0";
+        pyproject = true;
 
-        meta.mainProgram = "streamdeck.py";
+        meta.mainProgram = "streamdeck-obs";
 
-        nativeBuildInputs = [ pkgs.copyDesktopItems ];
+        nativeBuildInputs = [ pkgs.copyDesktopItems setuptools-scm setuptools ];
 
         desktopItems = [(pkgs.makeDesktopItem {
           name = "streamdeck";
           desktopName = "Streamdeck";
-          exec = "streamdeck-obs.py";
+          exec = "streamdeck-obs";
         })];
+        dontCheckRuntimeDeps = true;
 
-        propagatedBuildInputs = [ streamdeck setuptools simpleobsws pillow tkinter ];
+        propagatedBuildInputs = [ streamdeck simpleobsws pillow tkinter ];
 
         src = ./.;
 

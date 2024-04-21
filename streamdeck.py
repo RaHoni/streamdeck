@@ -6,6 +6,7 @@ import json
 import os
 import time
 import traceback
+import importlib
 
 import simpleobsws
 from simpleobsws import Request
@@ -14,6 +15,7 @@ from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 import tkinter as tk
 from tkinter import simpledialog
+
 
 # Gesangbuch = "Kreuzungen: "
 Gesangbuch = "Gotteslob: "
@@ -329,7 +331,11 @@ def handle_exception(loop, context):
     loop.close()
 
 
-if __name__ == "__main__":
+
+
+def main():
+    print(importlib.resources.files("streamdeck"))
+
     loop.set_exception_handler(handle_exception)
 
     ROOT = tk.Tk()
@@ -404,3 +410,6 @@ if __name__ == "__main__":
     ws.register_event_callback(on_on_scene_item_visibility_changed, "SceneItemEnableStateChanged")
 
     loop.run_forever()
+
+if __name__ == "__main__":
+    main()

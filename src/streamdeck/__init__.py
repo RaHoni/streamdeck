@@ -339,6 +339,10 @@ def handle_exception(loop, context):
 def main():
     global ws
     global data
+    global currentScene
+    global currentPreviewScene
+    global studioMode
+    global loop
     loop.set_exception_handler(handle_exception)
 
     ROOT = tk.Tk()

@@ -30,6 +30,7 @@ studioMode = False
 muted_sources = {"", "", ""}
 source_render_data = {"": {"current": False, "scene": "", "state": False, "scenes": {"": False}}}
 ws = "" # Just for global definition
+data = ""
 
 loop = asyncio.get_event_loop()
 while len(DeviceManager().enumerate()) < 1:
@@ -337,6 +338,7 @@ def handle_exception(loop, context):
 
 def main():
     global ws
+    global data
     loop.set_exception_handler(handle_exception)
 
     ROOT = tk.Tk()

@@ -187,7 +187,7 @@ async def toggle_mute_source(key):
     global ws
     local_source_name = data[key]["Name"]
     payload = {"source": local_source_name}
-    await requestAsync("ToggleMute", payload)
+    await requestAsync("ToggleInputMute", payload)
 
 
 async def toggle_studio_mode():

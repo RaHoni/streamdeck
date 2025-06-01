@@ -16,7 +16,7 @@
       packages.x86_64-linux = with pkgs.python3Packages; rec {
         streamdeck-obs = buildPythonApplication {
         pname = "streamdeck-obs";
-        version = "1.0";
+        version = "1.1";
         pyproject = true;
 
         meta.mainProgram = "streamdeck-obs";
@@ -40,13 +40,13 @@
 
         simpleobsws = buildPythonApplication rec {
           pname = "simpleobsws";
-          version = "1.4.0";
+          version = "1.4.2";
           
           propagatedBuildInputs = [ websockets msgpack ];
 
           src = fetchPypi {
             inherit pname version;
-            hash = "sha256-Ks67BUtFdPeLaU3nuqz3xkmejtxCOmguRG6OXDRDjWg=";
+            hash = "sha256-Y2CUyVp4s796mCIfeURJf8sBYB41z2bZLVo4R9kod4s=";
           };
 
           doCheck = false;

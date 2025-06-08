@@ -305,6 +305,11 @@ async def on_on_scene_item_visibility_changed(payload):
 
     await update_all_keys()
 
+async def on_exit_started(payload):
+    await exit_async()
+
+
+
 
 # Request Helper
 
@@ -418,6 +423,7 @@ def main():
     ws.register_event_callback(on_preview_scene_change, "CurrentPreviewSceneChanged")
     ws.register_event_callback(on_source_mute_state_changed, "InputMuteStateChanged")
     ws.register_event_callback(on_on_scene_item_visibility_changed, "SceneItemEnableStateChanged")
+    ws.register_event_callback(on_exit_started, "ExitStarted")
 
     loop.run_forever()
 
